@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Система управления обучением</h1>
+
+        <section class="card">
+            <h2>Пользователи системы</h2>
+            <div id="user-list" class="user-grid"></div>
+        </section>
+
+        <section class="card">
+            <h2>Добавить новый курс</h2>
+            <div class="form-group">
+                <input type="text" id="courseTitle" placeholder="Название курса">
+                <input type="text" id="courseDesc" placeholder="Описание курса">
+                <button id="addBtn">Добавить</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Доступные курсы</h2>
+            <ul id="courses-container" class="course-list"></ul>
+        </section>
+    </div>
+
+    <script>
+        var UserRole = { Admin: 'Admin', Teacher: 'Teacher', Student: 'Student' };
+
+        var CourseManager = (function () {
+            function CourseManager() { this.courses = []; }
+            CourseManager.prototype.addCourse = function (course) {
+                this.courses.push(course);
+            };
+            CourseManager.prototype.removeCourse = function (id) {
+                var index = this.courses.findIndex(function (c) { return c.id === id; });
+                if (index !== -1) { this.courses.splice(index, 1); }
+            };
+            return CourseManager;
+        }());
+
+        var users = [
+            { id: 1, name: 'Ерасыл', role: UserRole.Admin },
+            { id: 2, name: 'Ернур', role: UserRole.Teacher },
+            { id: 3, name: 'Даян', role: UserRole.Student }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var myManager = new CourseManager();
+            var container = document.getElementById('courses-container');
+            var userList = document.getElementById('user-list');
+            var addBtn = document.getElementById('addBtn');
+
+            function renderCourses() {
+                container.innerHTML = '';
+                myManager.courses.forEach(function(course) {
+                    var li = document.createElement('li');
+                    li.innerHTML = `<div><strong>${course.title}</strong><p>${course.description}</p></div>`;
+                    var delBtn = document.createElement('button');
+                    delBtn.textContent = 'Удалить';
+                    delBtn.className = 'btn-delete';
+                    delBtn.onclick = function() {
+                        myManager.removeCourse(course.id);
+                        renderCourses();
+                    };
+                    li.appendChild(delBtn);
+                    container.appendChild(li);
+                });
+            }
+
+            addBtn.onclick = function() {
+                var titleInput = document.getElementById('courseTitle');
+                var descInput = document.getElementById('courseDesc');
+                if (titleInput.value) {
+                    myManager.addCourse({
+                        id: Date.now(),
+                        title: titleInput.value,
+                        description: descInput.value
+                    });
+                    titleInput.value = '';
+                    descInput.value = '';
+                    renderCourses();
+                }
+            };
+
+            users.forEach(function(u) {
+                var div = document.createElement('div');
+                div.className = 'user-badge ' + u.role.toLowerCase();
+                div.innerHTML = '<strong>' + u.name + '</strong><br><small>' + u.role + '</small>';
+                userList.appendChild(div);
+            });
+
+            myManager.addCourse({ id: 101, title: "TypeScript Basics", description: "Основы типизации" });
+            renderCourses();
+        });
+    </script>
+</body>
+</html>
